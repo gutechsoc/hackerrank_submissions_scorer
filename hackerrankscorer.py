@@ -8,9 +8,10 @@ import browser_cookie3
 # Config
 # ----------------------------
 
-CONTEST_SLUG = "code-olympics-2025"
+CONTEST_SLUG = "code-olympics-2026"
 CHROME_PROFILE = "Profile 1"   
 USERS_CSV_PATH = "users.csv"
+ORDER_BY = 0  # 0 for team number, 1 for score
 
 PAGE_SIZE = 1000
 mods = set()       
@@ -208,31 +209,27 @@ def compute_team_scores(submissions, teams, users, mods=None, block_list=None):
         total = sum(team_data["challenges"].values())
         team_scores.append((team_name, round(total, 2)))
 
-    team_scores.sort(key=lambda x: x[1], reverse=False)
+    team_scores.sort(key=lambda x: x[ORDER_BY], reverse=False)
 
     return team_scores, ty, grr, huh
 
 
-def main():
-    teams, users = load_users_and_teams(USERS_CSV_PATH)
-    print(f"Loaded {len(users)} users across {len(teams)} teams")
 
-    submissions = fetch_all_submissions(CONTEST_SLUG, CHROME_PROFILE, PAGE_SIZE)
-    print(f"Total submissions fetched: {len(submissions)}")
+teams, users = load_users_and_teams(USERS_CSV_PATH)
+print(f"Loaded {len(users)} users across {len(teams)} teams")
 
-    team_scores, ty, grr, huh = compute_team_scores(
-        submissions, teams, users, mods=mods, block_list=block_list
-    )
+submissions = fetch_all_submissions(CONTEST_SLUG, CHROME_PROFILE, PAGE_SIZE)
+print(f"Total submissions fetched: {len(submissions)}")
 
-    print("\n--- Unknown users ---")
-    print("Mods:", ty)
-    print("Blocked:", grr)
-    print("Missing:", huh)
+team_scores, ty, grr, huh = compute_team_scores(
+    submissions, teams, users, mods=mods, block_list=block_list
+)
 
-    print("\n--- Team leaderboard ---")
-    for rank, (team, score) in enumerate(team_scores, start=1):
-        print(f"{rank}. {team}: {score}")
+print("\n--- Unknown users ---")
+print("Mods:", ty)
+print("Blocked:", grr)
+print("Missing:", huh)
 
-
-if __name__ == "__main__":
-    main()
+print("\n--- Team leaderboard ---")
+for rank, (team, score) in enumerate(team_scores, start=1):
+    print(f"{rank}. {team}: {score}")
